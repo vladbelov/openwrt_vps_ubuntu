@@ -50,16 +50,6 @@ mount ${LOOP_DEVICE}p1 $MOUNT_POINT_BOOT
 echo "Mounting the root filesystem partition from the OpenWRT image..."
 mount ${LOOP_DEVICE}p2 $MOUNT_POINT_ROOT
 
-# Create directories for temporary storage in Ubuntu
-#echo "Creating directories for temporary mounting in Ubuntu..."
-#mkdir -p "$TEMP_MOUNT/boot"
-#mkdir -p "$TEMP_MOUNT/rootfs"
-
-# Copy files from OpenWRT to Ubuntu temporary directories (excluding unnecessary directories)
-#echo "Copying files from OpenWRT to temporary directories..."
-#rsync -a --exclude={proc,sys,dev,tmp,run,var/lock,var/run,var/tmp} "$MOUNT_POINT_ROOT/" "$TEMP_MOUNT/rootfs/"
-#rsync -a --exclude=boot/grub "$MOUNT_POINT_BOOT/" "$TEMP_MOUNT/boot/"
-
 # Копируем только ядро и initrd в /boot
 echo "Копирование ядра и initrd в /boot..."
 cp -v $MOUNT_POINT_BOOT/boot/vmlinuz $BOOT_DIR/vmlinuz-openwrt
