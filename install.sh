@@ -67,9 +67,13 @@ cp -v $MOUNT_POINT_BOOT/initrd.img $BOOT_DIR/initrd-openwrt.img
 
 # Настройка GRUB
 echo "Настройка GRUB для загрузки OpenWRT..."
-cat <<EOF > $GRUB_CONFIG
+cat <<EOF | tee $GRUB_CONFIG > /dev/null
+#!/bin/sh
+exec tail -n +3 \$0
+
 menuentry "OpenWRT" {
     set root=(hd0,1)
+    insmod ext4  # Убедимся, что поддержка ext4 активирована (или используйте нужную файловую систему, например, squashfs)
     linux /boot/vmlinuz-openwrt root=/dev/sda2 rw
     initrd /boot/initrd-openwrt.img
 }
