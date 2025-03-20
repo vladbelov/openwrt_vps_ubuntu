@@ -5,8 +5,8 @@ MOUNT_POINT_ROOT="/mnt/openwrt-rootfs"
 MOUNT_POINT_BOOT="/mnt/openwrt-boot"
 GRUB_CONFIG="/etc/grub.d/40_custom"
 BOOT_DIR="/boot"
-DEVICE_ROOT="/dev/sda1"
-DEVICE_BOOT="/dev/sda2"
+DEVICE_ROOT="/dev/sda2"
+DEVICE_BOOT="/dev/sda1"
 
 # Ensure the script is running as root
 if [ "$(id -u)" -ne 0 ]; then
@@ -27,7 +27,7 @@ export DEBIAN_FRONTEND=noninteractive
 # Install necessary utilities
 echo "Installing utilities for working with images..."
 apt update
-apt install -y rsync util-linux squashfs-tools debootstrap grub2-common
+apt install -y rsync util-linux squashfs-tools debootstrap grub2-common syslinux dosfstools
 
 # Create mount points
 echo "Creating mount points..."
@@ -52,11 +52,13 @@ mount ${LOOP_DEVICE}p2 $MOUNT_POINT_ROOT
 echo "Копирование ядра в /boot..."
 cp -v $MOUNT_POINT_BOOT/boot/vmlinuz $BOOT_DIR/vmlinuz-openwrt
 
+mkfs.vfat -F 32 $DEVICE_BOOT
+
 syslinux --install $DEVICE_BOOT
 dd if=/usr/lib/syslinux/mbr/mbr.bin of=/dev/sda
 
 # Создание конфигурации загрузки
-echo "Создание конфигурации загрузки OpenWRT..." | tee -a $LOG_FILE
+echo "Создание конфигурации загрузки OpenWRT..."
 cat <<EOF > $MOUNT_POINT_BOOT/syslinux.cfg
 DEFAULT openwrt
 LABEL openwrt
