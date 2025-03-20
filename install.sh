@@ -74,7 +74,6 @@ menuentry "OpenWRT" {
     set root=(hd0,1)
     insmod ext4  # Убедимся, что поддержка ext4 активирована (или используйте нужную файловую систему, например, squashfs)
     linux /boot/vmlinuz-openwrt root=/dev/sda2 rw
-    initrd /boot/initrd-openwrt.img
 }
 EOF
 
