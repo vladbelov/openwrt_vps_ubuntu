@@ -76,4 +76,4 @@ menuentry "OpenWRT" {
 EOF
 
 chmod +x $GRUB_CONFIG
-update-grub | tee -a $LOG_FILE
+update-grub
