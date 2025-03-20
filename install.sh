@@ -1,6 +1,6 @@
-!#/bin/sh
+#!/bin/sh
 
-OPENWRT_IMAGE="squashfs-combined.img.gz" # Path to the OpenWRT image
+OPENWRT_IMAGE="image.img.gz" # Path to the OpenWRT image
 MOUNT_POINT_ROOT="/mnt/openwrt-rootfs"
 MOUNT_POINT_BOOT="/mnt/openwrt-boot"
 GRUB_CONFIG="/etc/grub.d/40_custom"
@@ -30,7 +30,7 @@ apt update
 apt install -y rsync util-linux squashfs-tools debootstrap grub2-common
 
 # Create mount points
-echo "Creating mount point..."
+echo "Creating mount points..."
 mkdir -p $MOUNT_POINT_ROOT $MOUNT_POINT_BOOT
 
 # Attach the OpenWRT image to a loop device
@@ -48,28 +48,20 @@ mount ${LOOP_DEVICE}p1 $MOUNT_POINT_BOOT
 echo "Mounting the root filesystem partition from the OpenWRT image..."
 mount ${LOOP_DEVICE}p2 $MOUNT_POINT_ROOT
 
-# Копируем только ядро и initrd в /boot
-echo "Копирование ядра и initrd в /boot..."
+# Копируем ядро в /boot
+echo "Копирование ядра в /boot..."
 cp -v $MOUNT_POINT_BOOT/boot/vmlinuz $BOOT_DIR/vmlinuz-openwrt
 
-# Настройка GRUB
-echo "Настройка GRUB для загрузки OpenWRT..."
-cat <<EOF | tee $GRUB_CONFIG > /dev/null
-#!/bin/sh
-exec tail -n +3 \$0
+syslinux --install $DEVICE_BOOT
+dd if=/usr/lib/syslinux/mbr/mbr.bin of=/dev/sda
 
-menuentry "OpenWRT" {
-    insmod ext4
-    set root=(hd0,1)
-    insmod ext4  # Убедимся, что поддержка ext4 активирована (или используйте нужную файловую систему, например, squashfs)
-    linux /boot/vmlinuz-openwrt root=/dev/sda2 rw
-}
+# Создание конфигурации загрузки
+echo "Создание конфигурации загрузки OpenWRT..." | tee -a $LOG_FILE
+cat <<EOF > $MOUNT_POINT_BOOT/syslinux.cfg
+DEFAULT openwrt
+LABEL openwrt
+    KERNEL /vmlinuz-openwrt
+    APPEND root=/dev/sda2 rw
 EOF
 
-chmod +x $GRUB_CONFIG
-
-# Установка OpenWRT как по умолчанию
-echo "Устанавливаем OpenWRT как загрузку по умолчанию в GRUB..."
-sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT="OpenWRT"/' /etc/default/grub
-
-update-grub
+sync
