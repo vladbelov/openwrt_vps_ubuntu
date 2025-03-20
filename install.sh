@@ -3,7 +3,7 @@
 OPENWRT_IMAGE="squashfs-combined.img.gz" # Path to the OpenWRT image
 MOUNT_POINT_ROOT="/mnt/openwrt-rootfs"
 MOUNT_POINT_BOOT="/mnt/openwrt-boot"
-TEMP_MOUNT="/mnt/tmpfs"
+#TEMP_MOUNT="/mnt/tmpfs"
 GRUB_CONFIG="/etc/grub.d/40_custom"
 BOOT_DIR="/boot"
 DEVICE_ROOT="/dev/sda1"
@@ -32,9 +32,8 @@ apt install -y rsync util-linux squashfs-tools debootstrap grub2-common
 
 # Create mount points
 echo "Creating mount point..."
-mkdir -p $MOUNT_POINT_ROOT
-mkdir -p $MOUNT_POINT_BOOT
-mkdir -p $TEMP_MOUNT
+mkdir -p $MOUNT_POINT_ROOT $MOUNT_POINT_BOOT
+#mkdir -p $TEMP_MOUNT
 
 # Attach the OpenWRT image to a loop device
 echo "Attaching the OpenWRT image to a loop device..."
@@ -52,16 +51,29 @@ echo "Mounting the root filesystem partition from the OpenWRT image..."
 mount ${LOOP_DEVICE}p2 $MOUNT_POINT_ROOT
 
 # Create directories for temporary storage in Ubuntu
-echo "Creating directories for temporary mounting in Ubuntu..."
-mkdir -p "$TEMP_MOUNT/boot"
-mkdir -p "$TEMP_MOUNT/rootfs"
+#echo "Creating directories for temporary mounting in Ubuntu..."
+#mkdir -p "$TEMP_MOUNT/boot"
+#mkdir -p "$TEMP_MOUNT/rootfs"
 
 # Copy files from OpenWRT to Ubuntu temporary directories (excluding unnecessary directories)
-echo "Copying files from OpenWRT to temporary directories..."
-rsync -a --exclude={proc,sys,dev,tmp,run,var/lock,var/run,var/tmp} "$MOUNT_POINT_ROOT/" "$TEMP_MOUNT/rootfs/"
-rsync -a --exclude=boot/grub "$MOUNT_POINT_BOOT/" "$TEMP_MOUNT/boot/"
+#echo "Copying files from OpenWRT to temporary directories..."
+#rsync -a --exclude={proc,sys,dev,tmp,run,var/lock,var/run,var/tmp} "$MOUNT_POINT_ROOT/" "$TEMP_MOUNT/rootfs/"
+#rsync -a --exclude=boot/grub "$MOUNT_POINT_BOOT/" "$TEMP_MOUNT/boot/"
 
-# Move files from the temporary directory to the root filesystem of Ubuntu
-echo "Moving files from the temporary directory to the root filesystem of Ubuntu..."
-rsync -a --delete "$TEMP_MOUNT/rootfs/" /
-rsync -a --delete "$TEMP_MOUNT/boot/" $BOOT_DIR/
+# Копируем только ядро и initrd в /boot
+echo "Копирование ядра и initrd в /boot..."
+cp -v $MOUNT_POINT_BOOT/vmlinuz $BOOT_DIR/vmlinuz-openwrt
+cp -v $MOUNT_POINT_BOOT/initrd.img $BOOT_DIR/initrd-openwrt.img
+
+# Настройка GRUB
+echo "Настройка GRUB для загрузки OpenWRT..."
+cat <<EOF > $GRUB_CONFIG
+menuentry "OpenWRT" {
+    set root=(hd0,1)
+    linux /boot/vmlinuz-openwrt root=/dev/sda2 rw
+    initrd /boot/initrd-openwrt.img
+}
+EOF
+
+chmod +x $GRUB_CONFIG
+update-grub | tee -a $LOG_FILE
