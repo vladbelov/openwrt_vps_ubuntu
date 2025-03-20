@@ -62,8 +62,7 @@ mount ${LOOP_DEVICE}p2 $MOUNT_POINT_ROOT
 
 # Копируем только ядро и initrd в /boot
 echo "Копирование ядра и initrd в /boot..."
-cp -v $MOUNT_POINT_BOOT/vmlinuz $BOOT_DIR/vmlinuz-openwrt
-cp -v $MOUNT_POINT_BOOT/initrd.img $BOOT_DIR/initrd-openwrt.img
+cp -v $MOUNT_POINT_BOOT/boot/vmlinuz $BOOT_DIR/vmlinuz-openwrt
 
 # Настройка GRUB
 echo "Настройка GRUB для загрузки OpenWRT..."
