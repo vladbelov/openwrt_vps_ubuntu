@@ -76,4 +76,9 @@ menuentry "OpenWRT" {
 EOF
 
 chmod +x $GRUB_CONFIG
+
+# Установка OpenWRT как по умолчанию
+echo "Устанавливаем OpenWRT как загрузку по умолчанию в GRUB..."
+sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT="OpenWRT"/' /etc/default/grub
+
 update-grub
