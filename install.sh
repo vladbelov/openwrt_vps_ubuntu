@@ -3,7 +3,6 @@
 OPENWRT_IMAGE="squashfs-combined.img.gz" # Path to the OpenWRT image
 MOUNT_POINT_ROOT="/mnt/openwrt-rootfs"
 MOUNT_POINT_BOOT="/mnt/openwrt-boot"
-#TEMP_MOUNT="/mnt/tmpfs"
 GRUB_CONFIG="/etc/grub.d/40_custom"
 BOOT_DIR="/boot"
 DEVICE_ROOT="/dev/sda1"
@@ -33,7 +32,6 @@ apt install -y rsync util-linux squashfs-tools debootstrap grub2-common
 # Create mount points
 echo "Creating mount point..."
 mkdir -p $MOUNT_POINT_ROOT $MOUNT_POINT_BOOT
-#mkdir -p $TEMP_MOUNT
 
 # Attach the OpenWRT image to a loop device
 echo "Attaching the OpenWRT image to a loop device..."
