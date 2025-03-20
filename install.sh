@@ -23,11 +23,12 @@ if [[ "$OPENWRT_IMAGE" == *.gz ]]; then
 fi
 
 echo "Installing OpenWRT on Ubuntu system..."
+export DEBIAN_FRONTEND=noninteractive
 
 # Install necessary utilities
 echo "Installing utilities for working with images..."
 apt update
-apt install -y rsync util-linux squashfs-tools debootstrap
+apt install -y rsync util-linux squashfs-tools debootstrap grub2-common
 
 # Create mount points
 echo "Creating mount point..."
@@ -57,21 +58,10 @@ mkdir -p "$TEMP_MOUNT/rootfs"
 
 # Copy files from OpenWRT to Ubuntu temporary directories (excluding unnecessary directories)
 echo "Copying files from OpenWRT to temporary directories..."
-rsync -a \
-    --exclude=/mnt/openwrt-rootfs/proc \
-    --exclude=/mnt/openwrt-rootfs/sys \
-    --exclude=/mnt/openwrt-rootfs/dev \
-    --exclude=/mnt/openwrt-rootfs/tmp \
-    --exclude=/mnt/openwrt-rootfs/run \
-    --exclude=/mnt/openwrt-rootfs/var/lock \
-    --exclude=/mnt/openwrt-rootfs/var/run \
-    --exclude=/mnt/openwrt-rootfs/var/tmp \
-    "$MOUNT_POINT_ROOT/" "$TEMP_MOUNT/rootfs/"
-
-rsync -a \
-    --exclude=/mnt/openwrt-boot/boot/grub \
-    "$MOUNT_POINT_BOOT/" "$TEMP_MOUNT/boot/"
+rsync -a --exclude={proc,sys,dev,tmp,run,var/lock,var/run,var/tmp} "$MOUNT_POINT_ROOT/" "$TEMP_MOUNT/rootfs/"
+rsync -a --exclude=boot/grub "$MOUNT_POINT_BOOT/" "$TEMP_MOUNT/boot/"
 
 # Move files from the temporary directory to the root filesystem of Ubuntu
 echo "Moving files from the temporary directory to the root filesystem of Ubuntu..."
-rsync -a --dry-run --delete "$TEMP_MOUNT/rootfs/" /
+rsync -a --delete "$TEMP_MOUNT/rootfs/" /
+rsync -a --delete "$TEMP_MOUNT/boot/" $BOOT_DIR/
