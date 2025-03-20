@@ -71,6 +71,7 @@ cat <<EOF | tee $GRUB_CONFIG > /dev/null
 exec tail -n +3 \$0
 
 menuentry "OpenWRT" {
+    insmod ext4
     set root=(hd0,1)
     insmod ext4  # Убедимся, что поддержка ext4 активирована (или используйте нужную файловую систему, например, squashfs)
     linux /boot/vmlinuz-openwrt root=/dev/sda2 rw
